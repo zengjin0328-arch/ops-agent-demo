@@ -3,45 +3,73 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>运营指挥官 Agent 高保真 Demo</title>
+  <title>运营指挥官 Agent · Neon v2</title>
   <style>
     :root {
-      --primary: #1890ff;
-      --primary-dark: #096dd9;
-      --success: #52c41a;
-      --warning: #faad14;
-      --danger: #ff4d4f;
-      --text: #1f2329;
-      --subtext: #667085;
-      --line: #d9d9d9;
-      --bg: #f5f7fb;
-      --card: #ffffff;
-      --shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
-      --radius: 12px;
+      --bg-1: #050915;
+      --bg-2: #090f24;
+      --panel: rgba(11, 18, 40, 0.72);
+      --panel-strong: rgba(10, 17, 38, 0.92);
+      --line: rgba(141, 197, 255, 0.26);
+      --text-main: #e8f3ff;
+      --text-sub: #93a7c6;
+      --primary: #3aa7ff;
+      --secondary: #00f0ff;
+      --violet: #a86dff;
+      --success: #13d47f;
+      --warn: #fdb844;
+      --radius: 16px;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
     }
 
     * {
       box-sizing: border-box;
-      font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+      font-family: "PingFang SC", "SF Pro Text", "Microsoft YaHei", sans-serif;
     }
 
-    body {
+    html, body {
       margin: 0;
-      background: linear-gradient(180deg, #eef4ff 0%, #f7f8fb 40%, #f3f5f9 100%);
-      color: var(--text);
+      min-height: 100%;
+      color: var(--text-main);
+      background: radial-gradient(circle at 20% 10%, #11244f 0%, transparent 45%),
+                  radial-gradient(circle at 80% 0%, #241a5a 0%, transparent 38%),
+                  linear-gradient(160deg, var(--bg-1), var(--bg-2));
+      overflow: hidden;
+    }
+
+    .fx, .fx::before, .fx::after {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      content: "";
+      z-index: 0;
+    }
+    .fx::before {
+      background-image: radial-gradient(rgba(97, 192, 255, 0.22) 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity: 0.3;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent 85%);
+    }
+    .fx::after {
+      background: linear-gradient(90deg, transparent 0%, rgba(74, 168, 255, 0.08) 50%, transparent 100%);
+      transform: translateX(-100%);
+      animation: sweep 9s linear infinite;
+    }
+    @keyframes sweep {
+      to { transform: translateX(100%); }
     }
 
     .topbar {
-      height: 68px;
-      background: #0b1220;
-      color: #fff;
+      position: relative;
+      z-index: 2;
+      height: 72px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 24px;
-      position: sticky;
-      top: 0;
-      z-index: 20;
+      padding: 0 22px;
+      backdrop-filter: blur(10px);
+      background: rgba(8, 14, 31, 0.74);
+      border-bottom: 1px solid var(--line);
     }
 
     .brand {
@@ -50,327 +78,356 @@
       gap: 12px;
       font-weight: 700;
       letter-spacing: 0.3px;
+      text-shadow: 0 0 18px rgba(58, 167, 255, 0.3);
     }
-
-    .brand-badge {
-      width: 34px;
-      height: 34px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #1890ff, #69b1ff);
+    .logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(145deg, var(--primary), var(--secondary));
       display: grid;
       place-items: center;
-      font-size: 18px;
+      box-shadow: 0 0 18px rgba(58, 167, 255, 0.5);
+      color: #031323;
+      font-weight: 900;
     }
 
     .mode-switch {
       display: flex;
       gap: 8px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 999px;
       padding: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(161, 199, 255, 0.24);
     }
-
     .mode-btn {
-      border: none;
+      border: 0;
+      background: transparent;
+      color: #b6c8e5;
       border-radius: 999px;
       padding: 8px 14px;
-      color: #dbe7ff;
-      background: transparent;
       cursor: pointer;
-      transition: all 0.2s ease;
       font-size: 13px;
     }
-
     .mode-btn.active {
-      color: #0b1220;
-      background: #fff;
-      font-weight: 600;
+      color: #001527;
+      font-weight: 700;
+      background: linear-gradient(120deg, #7ecbff, #b6f0ff);
+      box-shadow: 0 0 14px rgba(110, 215, 255, 0.5);
     }
 
     .page {
-      height: calc(100vh - 68px);
-      display: grid;
-      grid-template-columns: 1fr;
+      position: relative;
+      z-index: 1;
+      height: calc(100vh - 72px);
       overflow: hidden;
     }
-
     .workspace {
-      position: relative;
-      padding: 20px 20px 24px;
+      height: 100%;
+      padding: 18px;
       overflow: auto;
     }
 
     .grid {
       display: grid;
-      gap: 16px;
       grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
     }
-
-    .card {
-      background: var(--card);
-      border: 1px solid #e8edf5;
-      border-radius: var(--radius);
-      box-shadow: 0 4px 16px rgba(31, 35, 41, 0.06);
-      padding: 16px;
-    }
-
-    .card h3 {
-      margin: 0 0 10px;
-      font-size: 15px;
-    }
-
-    .card p, .card li {
-      color: var(--subtext);
-      font-size: 13px;
-      line-height: 1.55;
-      margin: 0;
-    }
-
     .span-8 { grid-column: span 8; }
     .span-4 { grid-column: span 4; }
     .span-12 { grid-column: span 12; }
 
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 6px;
-      font-size: 12px;
+    .card {
+      position: relative;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: linear-gradient(160deg, rgba(26, 43, 86, 0.48), rgba(13, 22, 49, 0.78));
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      overflow: hidden;
     }
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -100% auto auto -100%;
+      width: 200%;
+      height: 200%;
+      background: conic-gradient(from 90deg, transparent, rgba(58,167,255,0.14), transparent 35%);
+      animation: spin 16s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .card > * { position: relative; z-index: 1; }
 
-    .table th, .table td {
-      border-bottom: 1px solid #eff3f8;
-      padding: 10px 8px;
-      text-align: left;
-      color: #344054;
+    h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      color: #f3f9ff;
+      letter-spacing: 0.2px;
     }
+    .muted { color: var(--text-sub); font-size: 13px; line-height: 1.6; }
+
+    .table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .table th, .table td {
+      text-align: left;
+      padding: 11px 8px;
+      border-bottom: 1px solid rgba(150, 196, 255, 0.16);
+      color: #d6e8ff;
+    }
+    .table th { color: #9fc4ef; font-weight: 600; }
 
     .tag {
-      display: inline-block;
       border-radius: 999px;
-      padding: 2px 8px;
+      padding: 2px 9px;
       font-size: 11px;
-      line-height: 18px;
+      border: 1px solid transparent;
     }
+    .tag-green { color: #2bf2aa; border-color: rgba(43, 242, 170, 0.48); background: rgba(16, 92, 68, 0.22); }
+    .tag-orange { color: #ffd28c; border-color: rgba(255, 202, 125, 0.4); background: rgba(108, 67, 22, 0.28); }
+    .tag-blue { color: #8bceff; border-color: rgba(128, 201, 255, 0.4); background: rgba(26, 72, 117, 0.28); }
 
-    .tag-green { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
-    .tag-orange { background: #fff7e6; color: #d48806; border: 1px solid #ffd591; }
-    .tag-blue { background: #e6f7ff; color: #096dd9; border: 1px solid #91d5ff; }
+    .metric {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .kpi {
+      border: 1px solid rgba(150, 206, 255, 0.2);
+      border-radius: 12px;
+      padding: 10px;
+      background: rgba(8, 18, 42, 0.55);
+    }
+    .kpi b { font-size: 20px; color: #89d8ff; }
+    .kpi div { font-size: 12px; color: #9eb3d4; }
 
     .floating-agent {
       position: fixed;
-      right: 26px;
-      bottom: 26px;
-      width: 58px;
-      height: 58px;
+      right: 24px;
+      bottom: 22px;
+      width: 62px;
+      height: 62px;
       border-radius: 50%;
-      border: none;
-      background: linear-gradient(135deg, #1890ff, #40a9ff);
-      color: #fff;
-      font-size: 24px;
-      box-shadow: 0 10px 20px rgba(24, 144, 255, 0.4);
+      border: 0;
       cursor: pointer;
-      z-index: 40;
-      transition: transform 0.2s ease;
+      z-index: 30;
+      color: #021222;
+      font-size: 24px;
+      background: radial-gradient(circle at 30% 20%, #d7f8ff, #41bbff 45%, #507dff 100%);
+      box-shadow: 0 0 24px rgba(70, 171, 255, 0.7), 0 10px 22px rgba(22, 37, 85, 0.6);
+      animation: pulse 2.4s infinite ease-in-out;
     }
-
-    .floating-agent:hover { transform: translateY(-1px); }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.07); }
+    }
 
     .chat-drawer {
       position: fixed;
-      right: -440px;
-      top: 68px;
-      width: 420px;
-      height: calc(100vh - 68px);
-      background: #fff;
-      border-left: 1px solid #e8e8e8;
-      box-shadow: var(--shadow);
-      z-index: 50;
+      top: 72px;
+      right: -460px;
+      width: 440px;
+      height: calc(100vh - 72px);
       display: flex;
       flex-direction: column;
+      border-left: 1px solid rgba(158, 206, 255, 0.24);
+      background: linear-gradient(170deg, rgba(8, 17, 39, 0.95), rgba(5, 11, 27, 0.98));
+      backdrop-filter: blur(12px);
+      box-shadow: -10px 0 40px rgba(4, 10, 26, 0.75);
       transition: right 0.3s ease;
+      z-index: 40;
     }
-
     .chat-drawer.open { right: 0; }
 
     .chat-header {
-      height: 56px;
-      background: var(--primary);
-      color: #fff;
+      height: 58px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 14px;
+      border-bottom: 1px solid rgba(154, 205, 255, 0.2);
+      background: linear-gradient(100deg, rgba(27, 78, 144, 0.4), rgba(16, 50, 97, 0.45));
+    }
+    .chat-header b { color: #e8f5ff; letter-spacing: 0.25px; }
+    .btn {
+      border: 1px solid rgba(145, 190, 255, 0.35);
+      border-radius: 7px;
+      color: #d9ecff;
+      background: rgba(13, 32, 65, 0.8);
+      padding: 5px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .btn.primary {
+      color: #002136;
       font-weight: 700;
-      letter-spacing: 0.3px;
+      border: 0;
+      background: linear-gradient(120deg, #77d8ff, #3d9fff);
     }
 
     .chat-body {
       flex: 1;
       overflow: auto;
-      background: #fafcff;
       padding: 12px;
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
-
     .msg {
-      max-width: 88%;
-      border-radius: 10px;
+      max-width: 86%;
+      border-radius: 11px;
       padding: 10px 12px;
-      font-size: 13px;
       line-height: 1.5;
+      font-size: 13px;
       white-space: pre-wrap;
     }
-
-    .msg.user {
-      align-self: flex-end;
-      background: var(--primary);
-      color: #fff;
-      border-top-right-radius: 4px;
-    }
-
     .msg.bot {
       align-self: flex-start;
-      background: #fff;
-      color: #1f2329;
-      border: 1px solid #e8edf5;
-      border-top-left-radius: 4px;
+      border: 1px solid rgba(145, 196, 255, 0.28);
+      background: rgba(11, 28, 57, 0.9);
+      color: #d7ebff;
     }
+    .msg.user {
+      align-self: flex-end;
+      color: #031a2d;
+      font-weight: 600;
+      background: linear-gradient(130deg, #72d6ff, #56a6ff);
+    }
+    .msg.loading { color: #89a7cc; font-style: italic; }
 
-    .msg.loading {
-      color: #667085;
-      font-style: italic;
-    }
-
-    .confirm-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .btn {
-      border: 1px solid #d9d9d9;
-      background: #fff;
-      color: #1f2329;
-      padding: 5px 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      cursor: pointer;
-    }
-
-    .btn.primary {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: #fff;
-    }
+    .confirm-actions { display: flex; gap: 8px; margin-top: 8px; }
 
     .chat-shortcuts {
-      min-height: 44px;
-      border-top: 1px solid #eef1f6;
-      background: #fff;
+      min-height: 48px;
+      border-top: 1px solid rgba(162, 203, 255, 0.18);
       display: flex;
-      align-items: center;
       gap: 8px;
-      padding: 8px 10px;
+      align-items: center;
       overflow-x: auto;
+      padding: 8px 10px;
     }
-
     .chip {
-      border: 1px solid #bae0ff;
-      background: #e6f7ff;
-      color: #096dd9;
+      border: 1px solid rgba(125, 204, 255, 0.4);
+      background: rgba(30, 85, 156, 0.35);
+      color: #cbe9ff;
       border-radius: 16px;
-      padding: 4px 10px;
-      white-space: nowrap;
+      padding: 5px 11px;
       font-size: 12px;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     .chat-input {
-      border-top: 1px solid #eef1f6;
+      border-top: 1px solid rgba(156, 208, 255, 0.18);
       padding: 10px;
       display: flex;
       gap: 8px;
-      background: #fff;
     }
-
     .chat-input input {
       flex: 1;
-      border: 1px solid #d9d9d9;
+      border: 1px solid rgba(145, 195, 255, 0.28);
       border-radius: 8px;
+      background: rgba(7, 17, 38, 0.9);
+      color: #e7f3ff;
       padding: 10px;
-      outline: none;
       font-size: 13px;
+      outline: none;
     }
-
     .chat-input button {
       width: 38px;
-      border: none;
+      border: 0;
       border-radius: 8px;
-      background: var(--primary);
-      color: #fff;
       cursor: pointer;
       font-size: 16px;
+      color: #04213b;
+      background: linear-gradient(130deg, #82ddff, #50a8ff);
     }
 
     .app-shell {
       display: none;
+      height: 100%;
       justify-content: center;
       align-items: flex-start;
-      padding-top: 22px;
+      padding-top: 12px;
     }
-
     .app-shell.visible { display: flex; }
-
     .phone {
-      width: 390px;
+      width: 396px;
       height: 844px;
-      border: 10px solid #0f172a;
       border-radius: 42px;
-      background: #f4f6fb;
-      overflow: hidden;
+      border: 8px solid #0a142f;
       position: relative;
-      box-shadow: var(--shadow);
+      overflow: hidden;
+      box-shadow: 0 26px 60px rgba(2, 9, 24, 0.8), 0 0 0 1px rgba(133, 202, 255, 0.2);
+      background: radial-gradient(circle at 20% 0%, #193f87, #0a1330 42%, #050915 100%);
     }
-
+    .phone::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 80% 20%, rgba(94, 180, 255, 0.25), transparent 40%),
+                  radial-gradient(circle at 10% 75%, rgba(148, 96, 255, 0.22), transparent 42%);
+      pointer-events: none;
+      z-index: 0;
+    }
     .phone-notch {
       position: absolute;
-      top: 6px;
+      top: 4px;
       left: 50%;
       transform: translateX(-50%);
-      width: 120px;
+      width: 122px;
       height: 24px;
-      border-radius: 16px;
-      background: #0f172a;
-      z-index: 3;
+      border-radius: 14px;
+      background: #0a142f;
+      z-index: 10;
     }
-
     .app-home {
+      position: relative;
+      z-index: 2;
       height: 100%;
-      padding: 42px 14px 18px;
       overflow: auto;
+      padding: 40px 14px 16px;
     }
-
-    .app-title {
-      margin: 0 0 14px;
-      font-size: 18px;
-      font-weight: 700;
+    .app-hero {
+      border: 1px solid rgba(150, 206, 255, 0.35);
+      border-radius: 16px;
+      padding: 14px;
+      background: linear-gradient(140deg, rgba(27, 87, 159, 0.66), rgba(13, 31, 73, 0.8));
+      box-shadow: inset 0 0 30px rgba(90, 184, 255, 0.18);
+      margin-bottom: 12px;
     }
+    .app-hero b {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 16px;
+      letter-spacing: 0.2px;
+    }
+    .app-hero span { color: #b7d8ff; font-size: 12px; }
 
     .app-agent-entry {
       width: 100%;
-      border: 1px solid #91d5ff;
-      background: linear-gradient(180deg, #e6f7ff, #f0faff);
-      border-radius: 12px;
+      border: 1px solid rgba(126, 221, 255, 0.42);
+      border-radius: 16px;
+      color: #dff6ff;
+      background: linear-gradient(130deg, rgba(38, 121, 216, 0.66), rgba(22, 59, 112, 0.78));
       padding: 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       cursor: pointer;
       margin-bottom: 12px;
+      box-shadow: 0 0 20px rgba(83, 168, 255, 0.35);
     }
+
+    .mini-card {
+      border: 1px solid rgba(142, 196, 255, 0.25);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: rgba(8, 20, 47, 0.75);
+    }
+    .mini-card h4 { margin: 0 0 8px; font-size: 14px; color: #d8ebff; }
+    .mini-card p { margin: 5px 0; font-size: 12px; color: #aac3e6; }
 
     .app-sheet {
       position: absolute;
@@ -378,40 +435,48 @@
       right: 0;
       bottom: -100%;
       height: 92%;
-      background: #fff;
-      border-top-left-radius: 16px;
-      border-top-right-radius: 16px;
-      box-shadow: 0 -12px 30px rgba(15, 23, 42, 0.2);
       display: flex;
       flex-direction: column;
+      border-top-left-radius: 18px;
+      border-top-right-radius: 18px;
+      border-top: 1px solid rgba(164, 211, 255, 0.28);
+      background: linear-gradient(170deg, rgba(9, 20, 45, 0.95), rgba(6, 12, 30, 0.98));
+      box-shadow: 0 -12px 40px rgba(4, 8, 20, 0.75);
       transition: bottom 0.3s ease;
-      z-index: 5;
+      z-index: 9;
     }
-
     .app-sheet.open { bottom: 0; }
 
     .hint {
       position: fixed;
-      left: 18px;
-      bottom: 18px;
-      background: #0f172a;
-      color: #cbd5e1;
+      left: 16px;
+      bottom: 16px;
+      z-index: 2;
+      color: #9ab4d8;
       font-size: 12px;
       border-radius: 8px;
-      padding: 8px 10px;
-      z-index: 12;
+      border: 1px solid rgba(137, 184, 246, 0.24);
+      background: rgba(7, 15, 33, 0.72);
+      padding: 7px 10px;
+    }
+
+    @media (max-width: 980px) {
+      .span-8, .span-4, .span-12 { grid-column: span 12; }
+      .chat-drawer { width: 100vw; right: -100vw; }
+      .floating-agent { right: 14px; bottom: 14px; }
     }
   </style>
 </head>
 <body>
+  <div class="fx"></div>
   <div class="topbar">
     <div class="brand">
-      <div class="brand-badge">🤖</div>
-      <div>运营指挥官 Agent · 高保真 Demo</div>
+      <div class="logo">R</div>
+      <div>运营指挥官 Agent · Neon v2</div>
     </div>
     <div class="mode-switch">
-      <button class="mode-btn active" id="btnRms">RMS 平台端</button>
-      <button class="mode-btn" id="btnApp">R工作台APP 端</button>
+      <button class="mode-btn active" id="btnRms">RMS 控制台</button>
+      <button class="mode-btn" id="btnApp">R工作台APP</button>
     </div>
   </div>
 
@@ -419,16 +484,10 @@
     <div class="workspace" id="rmsView">
       <div class="grid">
         <div class="card span-8">
-          <h3>今日运营总览</h3>
+          <h3>城市运力全息看板</h3>
           <table class="table">
             <thead>
-              <tr>
-                <th>资产ID</th>
-                <th>班次</th>
-                <th>计划状态</th>
-                <th>安全员</th>
-                <th>任务类型</th>
-              </tr>
+              <tr><th>资产ID</th><th>班次</th><th>计划状态</th><th>安全员</th><th>任务类型</th></tr>
             </thead>
             <tbody>
               <tr><td>VXM2001</td><td>白班 08:00-22:00</td><td><span class="tag tag-green">进行中</span></td><td>宁波302</td><td>运营</td></tr>
@@ -436,24 +495,22 @@
               <tr><td>VXM2010</td><td>白班 08:00-22:00</td><td><span class="tag tag-blue">已中止</span></td><td>宁波351</td><td>运营</td></tr>
             </tbody>
           </table>
+          <div class="metric">
+            <div class="kpi"><b>92.4%</b><div>计划执行率</div></div>
+            <div class="kpi"><b>1.8s</b><div>Agent 平均响应</div></div>
+            <div class="kpi"><b>89</b><div>今日对话会话数</div></div>
+          </div>
         </div>
         <div class="card span-4">
-          <h3>Agent 能力范围（一期）</h3>
-          <ul>
-            <li>长期计划：查询 / 创建 / 编辑 / 删除</li>
-            <li>每日计划：查询 / 触发 / 停运 / 变更 / 分配安全员</li>
-            <li>批量操作：批量触发 / 批量停运 / 批量变更</li>
-            <li>场景管理：查询 / 创建回程单、充电单</li>
-            <li>运营知识问答、风险提示、操作确认</li>
-          </ul>
+          <h3>一期能力矩阵</h3>
+          <p class="muted">长期计划 / 每日计划 / 场景管理 / 智能问答 / 风险提示 / 操作确认。</p>
+          <p class="muted" style="margin-top:8px;">支持双入口：RMS 悬浮入口 + R工作台APP 首页入口。</p>
         </div>
         <div class="card span-12">
-          <h3>演示说明</h3>
-          <p>
-            1) 点击右下角浮动按钮打开 Agent 对话面板；2) 试试快捷指令或输入自然语言；
-            3) 输入“批量触发今天所有待触发计划”可体验确认流；
-            4) 切到右上角 APP 模式，可体验 R工作台APP 入口。
-          </p>
+          <h3>体验指引</h3>
+          <p class="muted">点击右下角 Agent 光球打开对话。建议试试：
+            「查看今日计划」「批量触发待触发计划」「分配安全员给VXM2006」。
+            右上角切到 R工作台APP 模式，可体验移动端科技感界面。</p>
         </div>
       </div>
       <button class="floating-agent" id="rmsEntry" title="运营指挥官">🤖</button>
@@ -463,31 +520,35 @@
       <div class="phone">
         <div class="phone-notch"></div>
         <div class="app-home">
-          <h3 class="app-title">R工作台APP</h3>
-          <button class="app-agent-entry" id="appEntry">
-            <span>🤖 运营指挥官 Agent</span>
-            <span style="color:#1677ff;font-size:13px;">进入对话 ></span>
-          </button>
-          <div class="card" style="margin-bottom:10px;">
-            <h3>今日待办</h3>
-            <p>• 18:00 晚班计划待触发：8 条</p>
-            <p>• 需分配安全员：3 条</p>
+          <div class="app-hero">
+            <b>R工作台 · 智能调度中心</b>
+            <span>晚高峰 17:30 预计拥堵指数 +23%，建议提前触发晚班计划。</span>
           </div>
-          <div class="card">
-            <h3>运营提醒</h3>
-            <p>晚高峰预计 17:30 开始，建议提前 30 分钟完成晚班触发。</p>
+          <button class="app-agent-entry" id="appEntry">
+            <span>🤖 启动运营指挥官</span>
+            <span style="font-size:12px;color:#b9edff;">进入对话 ></span>
+          </button>
+          <div class="mini-card">
+            <h4>任务热区</h4>
+            <p>• 待触发晚班计划：8 条</p>
+            <p>• 待分配安全员：3 条</p>
+          </div>
+          <div class="mini-card">
+            <h4>风险雷达</h4>
+            <p>• 2 辆车存在长时空驶风险</p>
+            <p>• 1 条计划可能发生班次冲突</p>
           </div>
         </div>
 
         <div class="app-sheet" id="appSheet">
           <div class="chat-header">
-            <span>🤖 运营指挥官</span>
+            <b>🤖 运营指挥官</b>
             <button class="btn" id="appClose">关闭</button>
           </div>
           <div class="chat-body" id="appChatBody"></div>
           <div class="chat-shortcuts" id="appShortcuts"></div>
           <div class="chat-input">
-            <input id="appInput" placeholder="请输入您的指令..." />
+            <input id="appInput" placeholder="输入自然语言指令..." />
             <button id="appSend">↑</button>
           </div>
         </div>
@@ -497,18 +558,18 @@
 
   <div class="chat-drawer" id="rmsChat">
     <div class="chat-header">
-      <span>🤖 运营指挥官</span>
+      <b>🤖 运营指挥官</b>
       <button class="btn" id="rmsClose">关闭</button>
     </div>
     <div class="chat-body" id="rmsChatBody"></div>
     <div class="chat-shortcuts" id="rmsShortcuts"></div>
     <div class="chat-input">
-      <input id="rmsInput" placeholder="请输入您的指令..." />
+      <input id="rmsInput" placeholder="输入自然语言指令..." />
       <button id="rmsSend">↑</button>
     </div>
   </div>
 
-  <div class="hint">提示：这是本地高保真前端 Demo，无后端依赖。</div>
+  <div class="hint">Neon v2 已上线后自动生效（静态页面，无后端依赖）</div>
 
   <script>
     const shortcuts = [
@@ -527,8 +588,7 @@
       function addMsg(role, text, html) {
         const div = document.createElement("div");
         div.className = `msg ${role}`;
-        if (html) div.innerHTML = html;
-        else div.textContent = text;
+        div.innerHTML = html || text;
         chatBody.appendChild(div);
         chatBody.scrollTop = chatBody.scrollHeight;
         return div;
@@ -536,47 +596,26 @@
 
       function addWelcome() {
         if (chatBody.childElementCount > 0) return;
-        addMsg("bot", "你好！我是运营指挥官，可以帮你查询计划、触发计划、分配安全员、创建长期计划。");
+        addMsg("bot", "你好，我是运营指挥官。可帮你查询/触发计划、分配安全员、创建长期计划。");
       }
 
-      function thinkingThenReply(text) {
-        const loading = addMsg("bot loading", "正在思考...");
-        setTimeout(() => {
-          loading.remove();
-          const q = text.trim();
-          if (!q) return;
-
-          if (q.includes("查看今日计划") || q.includes("今天") && q.includes("计划")) {
-            addMsg("bot", "", `
-              <b>今日计划查询结果：</b><br/>
-              1. VXM2001 白班 08:00-22:00，状态：<span style="color:#52c41a">进行中</span><br/>
-              2. VXM2006 晚班 18:00-22:00，状态：<span style="color:#fa8c16">待触发</span><br/>
-              3. VXM2010 白班 08:00-22:00，状态：<span style="color:#1677ff">已中止</span>
-            `);
-          } else if (q.includes("批量触发")) {
-            const box = addMsg("bot", "", `
-              我查询到今天共有 <b>8条</b> 待触发的每日计划。<br/>
-              确认批量触发吗？
-              <div class="confirm-actions">
-                <button class="btn primary">确认</button>
-                <button class="btn">取消</button>
-              </div>
-            `);
-            const [ok, cancel] = box.querySelectorAll("button");
-            ok.onclick = () => {
-              box.innerHTML = `✅ 批量触发成功！8条每日计划状态已变更为“进行中”。`;
-            };
-            cancel.onclick = () => {
-              box.innerHTML = `已取消本次批量触发操作。`;
-            };
-          } else if (q.includes("分配") && q.includes("VXM2006")) {
-            addMsg("bot", "建议分配安全员：宁波310（当前无冲突任务）。确认后可立即执行。");
-          } else if (q.includes("创建长期计划")) {
-            addMsg("bot", "好的，我将引导你创建长期计划。请先输入计划名称（50字以内）。");
-          } else {
-            addMsg("bot", "已收到。你可以说：\"查看今日计划\"、\"批量触发待触发计划\"、\"创建长期计划\"。");
-          }
-        }, 700);
+      function replyByText(text) {
+        const q = text.trim();
+        if (!q) return;
+        if (q.includes("查看今日计划") || (q.includes("今天") && q.includes("计划"))) {
+          addMsg("bot", "", "<b>今日计划查询结果</b><br/>1. VXM2001 白班 08:00-22:00，状态：<span style='color:#40f4ac'>进行中</span><br/>2. VXM2006 晚班 18:00-22:00，状态：<span style='color:#ffd28c'>待触发</span><br/>3. VXM2010 白班 08:00-22:00，状态：<span style='color:#8bceff'>已中止</span>");
+        } else if (q.includes("批量触发")) {
+          const box = addMsg("bot", "", "检测到今天共有 <b>8条</b> 待触发计划，是否立即批量触发？<div class='confirm-actions'><button class='btn primary'>确认</button><button class='btn'>取消</button></div>");
+          const [ok, cancel] = box.querySelectorAll("button");
+          ok.onclick = () => { box.innerHTML = "✅ 已完成批量触发，8 条计划状态更新为“进行中”。"; };
+          cancel.onclick = () => { box.innerHTML = "已取消本次批量触发。"; };
+        } else if (q.includes("分配") && q.includes("VXM2006")) {
+          addMsg("bot", "建议分配安全员：宁波310（无冲突）。确认后可立即执行。");
+        } else if (q.includes("创建长期计划")) {
+          addMsg("bot", "已进入创建流程，请输入计划名称（50字以内）。");
+        } else {
+          addMsg("bot", "已收到。可尝试指令：查看今日计划 / 批量触发待触发计划 / 创建长期计划。");
+        }
       }
 
       function submitText(text) {
@@ -585,7 +624,8 @@
         addWelcome();
         addMsg("user", t);
         input.value = "";
-        thinkingThenReply(t);
+        const loading = addMsg("bot loading", "正在思考...");
+        setTimeout(() => { loading.remove(); replyByText(t); }, 620);
       }
 
       shortcuts.forEach((s) => {
@@ -597,10 +637,7 @@
       });
 
       send.onclick = () => submitText();
-      input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") submitText();
-      });
-
+      input.addEventListener("keydown", (e) => { if (e.key === "Enter") submitText(); });
       return { addWelcome };
     }
 
@@ -612,12 +649,13 @@
     const rmsView = document.getElementById("rmsView");
     const appView = document.getElementById("appView");
     const rmsChat = document.getElementById("rmsChat");
-    const rmsEntry = document.getElementById("rmsEntry");
-    const rmsClose = document.getElementById("rmsClose");
 
-    const appEntry = document.getElementById("appEntry");
+    document.getElementById("rmsEntry").onclick = () => { rmsChat.classList.add("open"); rms.addWelcome(); };
+    document.getElementById("rmsClose").onclick = () => rmsChat.classList.remove("open");
+
     const appSheet = document.getElementById("appSheet");
-    const appClose = document.getElementById("appClose");
+    document.getElementById("appEntry").onclick = () => { appSheet.classList.add("open"); app.addWelcome(); };
+    document.getElementById("appClose").onclick = () => appSheet.classList.remove("open");
 
     function switchMode(mode) {
       if (mode === "rms") {
@@ -633,21 +671,8 @@
         rmsChat.classList.remove("open");
       }
     }
-
     btnRms.onclick = () => switchMode("rms");
     btnApp.onclick = () => switchMode("app");
-
-    rmsEntry.onclick = () => {
-      rmsChat.classList.add("open");
-      rms.addWelcome();
-    };
-    rmsClose.onclick = () => rmsChat.classList.remove("open");
-
-    appEntry.onclick = () => {
-      appSheet.classList.add("open");
-      app.addWelcome();
-    };
-    appClose.onclick = () => appSheet.classList.remove("open");
   </script>
 </body>
 </html>
