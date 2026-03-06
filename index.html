@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>运营指挥官 Agent 高保真 Demo</title>
+  <style>
+    :root {
+      --primary: #1890ff;
+      --primary-dark: #096dd9;
+      --success: #52c41a;
+      --warning: #faad14;
+      --danger: #ff4d4f;
+      --text: #1f2329;
+      --subtext: #667085;
+      --line: #d9d9d9;
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #eef4ff 0%, #f7f8fb 40%, #f3f5f9 100%);
+      color: var(--text);
+    }
+
+    .topbar {
+      height: 68px;
+      background: #0b1220;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .brand-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #1890ff, #69b1ff);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+    }
+
+    .mode-switch {
+      display: flex;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 999px;
+      padding: 4px;
+    }
+
+    .mode-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 14px;
+      color: #dbe7ff;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 13px;
+    }
+
+    .mode-btn.active {
+      color: #0b1220;
+      background: #fff;
+      font-weight: 600;
+    }
+
+    .page {
+      height: calc(100vh - 68px);
+      display: grid;
+      grid-template-columns: 1fr;
+      overflow: hidden;
+    }
+
+    .workspace {
+      position: relative;
+      padding: 20px 20px 24px;
+      overflow: auto;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(12, 1fr);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid #e8edf5;
+      border-radius: var(--radius);
+      box-shadow: 0 4px 16px rgba(31, 35, 41, 0.06);
+      padding: 16px;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+    }
+
+    .card p, .card li {
+      color: var(--subtext);
+      font-size: 13px;
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    .span-8 { grid-column: span 8; }
+    .span-4 { grid-column: span 4; }
+    .span-12 { grid-column: span 12; }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+      font-size: 12px;
+    }
+
+    .table th, .table td {
+      border-bottom: 1px solid #eff3f8;
+      padding: 10px 8px;
+      text-align: left;
+      color: #344054;
+    }
+
+    .tag {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      line-height: 18px;
+    }
+
+    .tag-green { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+    .tag-orange { background: #fff7e6; color: #d48806; border: 1px solid #ffd591; }
+    .tag-blue { background: #e6f7ff; color: #096dd9; border: 1px solid #91d5ff; }
+
+    .floating-agent {
+      position: fixed;
+      right: 26px;
+      bottom: 26px;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #1890ff, #40a9ff);
+      color: #fff;
+      font-size: 24px;
+      box-shadow: 0 10px 20px rgba(24, 144, 255, 0.4);
+      cursor: pointer;
+      z-index: 40;
+      transition: transform 0.2s ease;
+    }
+
+    .floating-agent:hover { transform: translateY(-1px); }
+
+    .chat-drawer {
+      position: fixed;
+      right: -440px;
+      top: 68px;
+      width: 420px;
+      height: calc(100vh - 68px);
+      background: #fff;
+      border-left: 1px solid #e8e8e8;
+      box-shadow: var(--shadow);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      transition: right 0.3s ease;
+    }
+
+    .chat-drawer.open { right: 0; }
+
+    .chat-header {
+      height: 56px;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .chat-body {
+      flex: 1;
+      overflow: auto;
+      background: #fafcff;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .msg {
+      max-width: 88%;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .msg.user {
+      align-self: flex-end;
+      background: var(--primary);
+      color: #fff;
+      border-top-right-radius: 4px;
+    }
+
+    .msg.bot {
+      align-self: flex-start;
+      background: #fff;
+      color: #1f2329;
+      border: 1px solid #e8edf5;
+      border-top-left-radius: 4px;
+    }
+
+    .msg.loading {
+      color: #667085;
+      font-style: italic;
+    }
+
+    .confirm-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .btn {
+      border: 1px solid #d9d9d9;
+      background: #fff;
+      color: #1f2329;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .btn.primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .chat-shortcuts {
+      min-height: 44px;
+      border-top: 1px solid #eef1f6;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      overflow-x: auto;
+    }
+
+    .chip {
+      border: 1px solid #bae0ff;
+      background: #e6f7ff;
+      color: #096dd9;
+      border-radius: 16px;
+      padding: 4px 10px;
+      white-space: nowrap;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .chat-input {
+      border-top: 1px solid #eef1f6;
+      padding: 10px;
+      display: flex;
+      gap: 8px;
+      background: #fff;
+    }
+
+    .chat-input input {
+      flex: 1;
+      border: 1px solid #d9d9d9;
+      border-radius: 8px;
+      padding: 10px;
+      outline: none;
+      font-size: 13px;
+    }
+
+    .chat-input button {
+      width: 38px;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .app-shell {
+      display: none;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 22px;
+    }
+
+    .app-shell.visible { display: flex; }
+
+    .phone {
+      width: 390px;
+      height: 844px;
+      border: 10px solid #0f172a;
+      border-radius: 42px;
+      background: #f4f6fb;
+      overflow: hidden;
+      position: relative;
+      box-shadow: var(--shadow);
+    }
+
+    .phone-notch {
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 24px;
+      border-radius: 16px;
+      background: #0f172a;
+      z-index: 3;
+    }
+
+    .app-home {
+      height: 100%;
+      padding: 42px 14px 18px;
+      overflow: auto;
+    }
+
+    .app-title {
+      margin: 0 0 14px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .app-agent-entry {
+      width: 100%;
+      border: 1px solid #91d5ff;
+      background: linear-gradient(180deg, #e6f7ff, #f0faff);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+
+    .app-sheet {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -100%;
+      height: 92%;
+      background: #fff;
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      box-shadow: 0 -12px 30px rgba(15, 23, 42, 0.2);
+      display: flex;
+      flex-direction: column;
+      transition: bottom 0.3s ease;
+      z-index: 5;
+    }
+
+    .app-sheet.open { bottom: 0; }
+
+    .hint {
+      position: fixed;
+      left: 18px;
+      bottom: 18px;
+      background: #0f172a;
+      color: #cbd5e1;
+      font-size: 12px;
+      border-radius: 8px;
+      padding: 8px 10px;
+      z-index: 12;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-badge">🤖</div>
+      <div>运营指挥官 Agent · 高保真 Demo</div>
+    </div>
+    <div class="mode-switch">
+      <button class="mode-btn active" id="btnRms">RMS 平台端</button>
+      <button class="mode-btn" id="btnApp">R工作台APP 端</button>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="workspace" id="rmsView">
+      <div class="grid">
+        <div class="card span-8">
+          <h3>今日运营总览</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>资产ID</th>
+                <th>班次</th>
+                <th>计划状态</th>
+                <th>安全员</th>
+                <th>任务类型</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>VXM2001</td><td>白班 08:00-22:00</td><td><span class="tag tag-green">进行中</span></td><td>宁波302</td><td>运营</td></tr>
+              <tr><td>VXM2006</td><td>晚班 18:00-22:00</td><td><span class="tag tag-orange">待触发</span></td><td>未分配</td><td>运营</td></tr>
+              <tr><td>VXM2010</td><td>白班 08:00-22:00</td><td><span class="tag tag-blue">已中止</span></td><td>宁波351</td><td>运营</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card span-4">
+          <h3>Agent 能力范围（一期）</h3>
+          <ul>
+            <li>长期计划：查询 / 创建 / 编辑 / 删除</li>
+            <li>每日计划：查询 / 触发 / 停运 / 变更 / 分配安全员</li>
+            <li>批量操作：批量触发 / 批量停运 / 批量变更</li>
+            <li>场景管理：查询 / 创建回程单、充电单</li>
+            <li>运营知识问答、风险提示、操作确认</li>
+          </ul>
+        </div>
+        <div class="card span-12">
+          <h3>演示说明</h3>
+          <p>
+            1) 点击右下角浮动按钮打开 Agent 对话面板；2) 试试快捷指令或输入自然语言；
+            3) 输入“批量触发今天所有待触发计划”可体验确认流；
+            4) 切到右上角 APP 模式，可体验 R工作台APP 入口。
+          </p>
+        </div>
+      </div>
+      <button class="floating-agent" id="rmsEntry" title="运营指挥官">🤖</button>
+    </div>
+
+    <div class="workspace app-shell" id="appView">
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="app-home">
+          <h3 class="app-title">R工作台APP</h3>
+          <button class="app-agent-entry" id="appEntry">
+            <span>🤖 运营指挥官 Agent</span>
+            <span style="color:#1677ff;font-size:13px;">进入对话 ></span>
+          </button>
+          <div class="card" style="margin-bottom:10px;">
+            <h3>今日待办</h3>
+            <p>• 18:00 晚班计划待触发：8 条</p>
+            <p>• 需分配安全员：3 条</p>
+          </div>
+          <div class="card">
+            <h3>运营提醒</h3>
+            <p>晚高峰预计 17:30 开始，建议提前 30 分钟完成晚班触发。</p>
+          </div>
+        </div>
+
+        <div class="app-sheet" id="appSheet">
+          <div class="chat-header">
+            <span>🤖 运营指挥官</span>
+            <button class="btn" id="appClose">关闭</button>
+          </div>
+          <div class="chat-body" id="appChatBody"></div>
+          <div class="chat-shortcuts" id="appShortcuts"></div>
+          <div class="chat-input">
+            <input id="appInput" placeholder="请输入您的指令..." />
+            <button id="appSend">↑</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-drawer" id="rmsChat">
+    <div class="chat-header">
+      <span>🤖 运营指挥官</span>
+      <button class="btn" id="rmsClose">关闭</button>
+    </div>
+    <div class="chat-body" id="rmsChatBody"></div>
+    <div class="chat-shortcuts" id="rmsShortcuts"></div>
+    <div class="chat-input">
+      <input id="rmsInput" placeholder="请输入您的指令..." />
+      <button id="rmsSend">↑</button>
+    </div>
+  </div>
+
+  <div class="hint">提示：这是本地高保真前端 Demo，无后端依赖。</div>
+
+  <script>
+    const shortcuts = [
+      "查看今日计划",
+      "创建长期计划",
+      "批量触发待触发计划",
+      "分配安全员给VXM2006"
+    ];
+
+    function setupChat(chatBodyId, shortcutsId, inputId, sendId) {
+      const chatBody = document.getElementById(chatBodyId);
+      const shortcutWrap = document.getElementById(shortcutsId);
+      const input = document.getElementById(inputId);
+      const send = document.getElementById(sendId);
+
+      function addMsg(role, text, html) {
+        const div = document.createElement("div");
+        div.className = `msg ${role}`;
+        if (html) div.innerHTML = html;
+        else div.textContent = text;
+        chatBody.appendChild(div);
+        chatBody.scrollTop = chatBody.scrollHeight;
+        return div;
+      }
+
+      function addWelcome() {
+        if (chatBody.childElementCount > 0) return;
+        addMsg("bot", "你好！我是运营指挥官，可以帮你查询计划、触发计划、分配安全员、创建长期计划。");
+      }
+
+      function thinkingThenReply(text) {
+        const loading = addMsg("bot loading", "正在思考...");
+        setTimeout(() => {
+          loading.remove();
+          const q = text.trim();
+          if (!q) return;
+
+          if (q.includes("查看今日计划") || q.includes("今天") && q.includes("计划")) {
+            addMsg("bot", "", `
+              <b>今日计划查询结果：</b><br/>
+              1. VXM2001 白班 08:00-22:00，状态：<span style="color:#52c41a">进行中</span><br/>
+              2. VXM2006 晚班 18:00-22:00，状态：<span style="color:#fa8c16">待触发</span><br/>
+              3. VXM2010 白班 08:00-22:00，状态：<span style="color:#1677ff">已中止</span>
+            `);
+          } else if (q.includes("批量触发")) {
+            const box = addMsg("bot", "", `
+              我查询到今天共有 <b>8条</b> 待触发的每日计划。<br/>
+              确认批量触发吗？
+              <div class="confirm-actions">
+                <button class="btn primary">确认</button>
+                <button class="btn">取消</button>
+              </div>
+            `);
+            const [ok, cancel] = box.querySelectorAll("button");
+            ok.onclick = () => {
+              box.innerHTML = `✅ 批量触发成功！8条每日计划状态已变更为“进行中”。`;
+            };
+            cancel.onclick = () => {
+              box.innerHTML = `已取消本次批量触发操作。`;
+            };
+          } else if (q.includes("分配") && q.includes("VXM2006")) {
+            addMsg("bot", "建议分配安全员：宁波310（当前无冲突任务）。确认后可立即执行。");
+          } else if (q.includes("创建长期计划")) {
+            addMsg("bot", "好的，我将引导你创建长期计划。请先输入计划名称（50字以内）。");
+          } else {
+            addMsg("bot", "已收到。你可以说：\"查看今日计划\"、\"批量触发待触发计划\"、\"创建长期计划\"。");
+          }
+        }, 700);
+      }
+
+      function submitText(text) {
+        const t = (text || input.value).trim();
+        if (!t) return;
+        addWelcome();
+        addMsg("user", t);
+        input.value = "";
+        thinkingThenReply(t);
+      }
+
+      shortcuts.forEach((s) => {
+        const chip = document.createElement("button");
+        chip.className = "chip";
+        chip.textContent = s;
+        chip.onclick = () => submitText(s);
+        shortcutWrap.appendChild(chip);
+      });
+
+      send.onclick = () => submitText();
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") submitText();
+      });
+
+      return { addWelcome };
+    }
+
+    const rms = setupChat("rmsChatBody", "rmsShortcuts", "rmsInput", "rmsSend");
+    const app = setupChat("appChatBody", "appShortcuts", "appInput", "appSend");
+
+    const btnRms = document.getElementById("btnRms");
+    const btnApp = document.getElementById("btnApp");
+    const rmsView = document.getElementById("rmsView");
+    const appView = document.getElementById("appView");
+    const rmsChat = document.getElementById("rmsChat");
+    const rmsEntry = document.getElementById("rmsEntry");
+    const rmsClose = document.getElementById("rmsClose");
+
+    const appEntry = document.getElementById("appEntry");
+    const appSheet = document.getElementById("appSheet");
+    const appClose = document.getElementById("appClose");
+
+    function switchMode(mode) {
+      if (mode === "rms") {
+        btnRms.classList.add("active");
+        btnApp.classList.remove("active");
+        rmsView.style.display = "block";
+        appView.classList.remove("visible");
+      } else {
+        btnApp.classList.add("active");
+        btnRms.classList.remove("active");
+        rmsView.style.display = "none";
+        appView.classList.add("visible");
+        rmsChat.classList.remove("open");
+      }
+    }
+
+    btnRms.onclick = () => switchMode("rms");
+    btnApp.onclick = () => switchMode("app");
+
+    rmsEntry.onclick = () => {
+      rmsChat.classList.add("open");
+      rms.addWelcome();
+    };
+    rmsClose.onclick = () => rmsChat.classList.remove("open");
+
+    appEntry.onclick = () => {
+      appSheet.classList.add("open");
+      app.addWelcome();
+    };
+    appClose.onclick = () => appSheet.classList.remove("open");
+  </script>
+</body>
+</html>
